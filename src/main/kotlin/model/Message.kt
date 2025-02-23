@@ -3,11 +3,12 @@ package com.rudraksha.model
 import kotlinx.serialization.Serializable
 import java.util.*
 
-//@Serializable
+@Serializable
 data class Message(
     val id: String = UUID.randomUUID().toString(),
-    val text: String,
+    val content: String,
     val senderId: String,
+    val receiversId: List<String> = listOf(),
     val timestamp: Long = System.currentTimeMillis(),
-    val type: String = "TEXT" // TEXT, IMAGE, VIDEO, etc.
+    val type: MessageType = MessageType.TEXT // TEXT, IMAGE, VIDEO, etc.
 )

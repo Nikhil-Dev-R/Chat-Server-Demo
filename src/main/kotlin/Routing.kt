@@ -1,5 +1,7 @@
 package com.rudraksha
 
+import com.rudraksha.model.Chat
+import com.rudraksha.model.Message
 import io.ktor.http.ContentType
 import io.ktor.server.application.*
 import io.ktor.server.response.respond
@@ -12,6 +14,10 @@ import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
+const val code = "!@#$%^&*()_+1234567890-=],.'/"
 
 fun Application.configureRouting() {
     routing {
@@ -33,15 +39,28 @@ fun Application.configureRouting() {
             send(Frame.Text("Hello $username! You are now connected."))
 
             incoming.consumeEach { frame ->
-                if (frame is Frame.Text) {
-                    val message = frame.readText()
-                    val parts = message.split(": ", limit = 2)
-                    if (parts.size == 2) {
-                        val targetUser = parts[0]
-                        val msg = parts[1]
-                        users[targetUser]?.send("$username: $msg")
-                    } else {
-                        send(Frame.Text("Not a valid username: $username"))
+                when (frame) {
+                    is Frame.Text -> {
+//                    val message = frame.readText()
+//                    val parts = message.split(": ", limit = 2)
+//                    if (parts.size == 2) {
+//                        val targetUser = parts[0]
+//                        val msg = parts[1]
+//                        users[targetUser]?.send("$username: $msg")
+//                    } else {
+//                        send(Frame.Text("Not a valid username: $username"))
+//                    }
+                        val message = Json.decodeFromString<Message>(frame.readText())
+                        val targetUsers = message.receiversId
+                        targetUsers.forEach { user ->
+                            users[user]?.send(Frame.Text(Json.encodeToString(message)))
+                        }
+                    }
+                    is Frame.Binary -> {
+                        send(Frame.Text("using Binary"))
+                    }
+                    else -> {
+                        send(Frame.Text("using else"))
                     }
                 }
             }

@@ -29,9 +29,9 @@ class MessageService {
                     id = row[Messages.id],
 //                    chatId = row[Messages.chatId],
                     senderId = row[Messages.senderId],
-                    text = row[Messages.content],
+                    content = row[Messages.content],
                     timestamp = row[Messages.timestamp],
-                    type = row[Messages.type].toString()
+                    type = row[Messages.type]
                 )
             }
     }
