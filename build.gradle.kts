@@ -1,5 +1,6 @@
 val kotlin_version: String by project
 val logback_version: String by project
+val ktor_version = "3.0.3"
 
 plugins {
     kotlin("jvm") version "2.1.10"
@@ -22,15 +23,15 @@ repositories {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-server-core")
-    implementation("io.ktor:ktor-server-content-negotiation")
-    implementation("io.ktor:ktor-serialization-kotlinx-json")
-    implementation("io.ktor:ktor-server-sessions")
-    implementation("io.ktor:ktor-server-websockets")
-    implementation("io.ktor:ktor-server-netty")
+    implementation("io.ktor:ktor-server-core:$ktor_version")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+    implementation("io.ktor:ktor-server-sessions:$ktor_version")
+    implementation("io.ktor:ktor-server-websockets:$ktor_version")
+    implementation("io.ktor:ktor-server-netty:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
-    implementation("io.ktor:ktor-server-config-yaml")
-    implementation("io.ktor:ktor-server-call-logging")
+    implementation("io.ktor:ktor-server-config-yaml:$ktor_version")
+    implementation("io.ktor:ktor-server-call-logging:$ktor_version")
     implementation("org.slf4j:slf4j-api:2.0.7")
 
     // Database (Exposed)
@@ -39,9 +40,9 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:0.44.0")
     implementation("com.h2database:h2:2.2.224")
 
-    testImplementation("io.ktor:ktor-server-test-host")
+    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    testImplementation("io.ktor:ktor-server-test-host-jvm:3.0.3")
+    testImplementation("io.ktor:ktor-server-test-host-jvm:$ktor_version")
 }
 
 // For Railway hosting
