@@ -3,4 +3,4 @@ ktor:
     modules:
       - com.rudraksha.ApplicationKt.module
   deployment:
-    port: ${PORT}
+    port: 8080
