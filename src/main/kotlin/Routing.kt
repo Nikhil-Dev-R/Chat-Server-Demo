@@ -36,7 +36,13 @@ fun Application.configureRouting() {
             }
 
             users[username] = this
-            send(Frame.Text("Hello $username! You are now connected."))
+
+            val connectedMessage = Message(
+                content = "Hello $username! You are now connected.",
+                senderId = "Server: $HOST:$8080",
+                receiversId = listOf(username)
+            )
+            send(Frame.Text(Json.encodeToString(connectedMessage)))
 
             incoming.consumeEach { frame ->
                 when (frame) {
@@ -57,7 +63,11 @@ fun Application.configureRouting() {
                         }
                     }
                     is Frame.Binary -> {
-                        send(Frame.Text("using Binary"))
+                        val byteArray = frame.data
+                        send(Frame.Binary(true, byteArray))
+//                        val fileName = "uploads/${System.currentTimeMillis()}.jpg"
+//                        File(fileName).writeBytes(frame.data)
+//                        println("Received and saved file: $fileName")
                     }
                     else -> {
                         send(Frame.Text("using else"))
