@@ -8,18 +8,20 @@ import io.ktor.websocket.WebSocketSession
 import java.util.concurrent.ConcurrentHashMap
 
 val users = ConcurrentHashMap<String, DefaultWebSocketSession>()
-const val HOST = "192.168.43.63"
+const val HOST = "0.0.0.0"
+//const val HOST = "192.168.15.96"
+//const val HOST = "192.168.43.63"
 
 fun main(
     args: Array<String>
 ) {
-    io.ktor.server.netty.EngineMain.main(args)
-//    embeddedServer(
-//        Netty,
-//        host = HOST,
-//        port = System.getenv("PORT")?.toInt() ?: 8080) {
-//        module()
-//    }.start(wait = true)
+//    io.ktor.server.netty.EngineMain.main(args)
+    embeddedServer(
+        Netty,
+        host = HOST,
+        port = System.getenv("PORT")?.toInt() ?: 8080) {
+        module()
+    }.start(wait = true)
 }
 
 fun Application.module() {

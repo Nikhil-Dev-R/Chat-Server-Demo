@@ -3,7 +3,6 @@ package com.rudraksha.service
 import com.rudraksha.database.Messages
 import com.rudraksha.model.Message
 import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 

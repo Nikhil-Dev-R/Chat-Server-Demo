@@ -7,18 +7,17 @@ import java.util.*
 data class Message(
     val id: String = UUID.randomUUID().toString(),
     val senderId: String,
-    val receiversId: List<String> = listOf(),
-    val timestamp: Long = System.currentTimeMillis(),
-    val type: MessageType,  // TEXT, IMAGE, VIDEO, etc.
+    val receiversId: String = "", // For Room, store receiversId as a comma-separated string;
     val content: String? = null, // For text messages
-    val fileMetadata: FileMetadata? = null, // For files
-    val chunkIndex: Int? = null, // If file is sent in chunks
-    val totalChunks: Int? = null // Total number of chunks
+    val type: MessageType = MessageType.TEXT,  // TEXT, IMAGE, VIDEO, etc.
+    val timestamp: Long = System.currentTimeMillis(),
+    val fileMetadata: String? = null, // For files
 )
 
 @Serializable
 data class FileMetadata(
     val fileName: String,
     val fileType: String,
-    val fileSize: Long
+    val fileSize: Long,
+    val totalChunks: Long // Total number of chunks
 )
