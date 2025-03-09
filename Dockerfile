@@ -6,6 +6,8 @@ WORKDIR /app
 # Copy Gradle wrapper & config files first (to optimize caching)
 COPY gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
 COPY gradle gradle
+
+# Ensure Gradle wrapper has execution permissions
 RUN chmod +x gradlew
 
 # Download dependencies separately to improve caching
