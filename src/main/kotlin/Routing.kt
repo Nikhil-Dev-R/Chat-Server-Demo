@@ -3,6 +3,7 @@ package com.rudraksha
 import com.rudraksha.model.FileMetadata
 import com.rudraksha.model.Message
 import com.rudraksha.model.WebSocketData
+import com.rudraksha.utils.createChatId
 import io.ktor.http.ContentType
 import io.ktor.server.application.*
 import io.ktor.server.response.respond
@@ -31,9 +32,6 @@ fun Application.configureRouting() {
         get("/") {
             call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
         }
-        webSocket("/ws") {
-            call.respond("good")
-        }
 
         webSocket("/chat/{username}") {
             val username = call.parameters["username"]
@@ -42,24 +40,25 @@ fun Application.configureRouting() {
                 return@webSocket
             }
 
-            users[username] = this
+            activeUsers[username] = this
 
             val connectedMessage = Message(
                 senderId = "Server",
                 receiversId = username,
+                chatId = createChatId(listOf(username)),
                 content = "Hello $username! You are now connected.",
             )
-            send(Frame.Text(Json.encodeToString(connectedMessage)))
+            send(Frame.Text(json.encodeToString(connectedMessage)))
+            println(connectedMessage)
 
             incoming.consumeEach { frame ->
                 when (frame) {
                     is Frame.Text -> {
-                        val message = Json.decodeFromString<Message>(frame.readText())
-                        val receivedText = frame.readText()
+                        val message = json.decodeFromString<Message>(frame.readText())
                         val targetUsers = message.receiversId.split(",")
 
                         message.fileMetadata?.let { fileMeta ->
-                            val fileMetadata = Json.decodeFromString<FileMetadata>(fileMeta)
+                            val fileMetadata = json.decodeFromString<FileMetadata>(fileMeta)
                             val fileKey = "${message.senderId}_${fileMetadata.fileName}"
 
                             println("Receiving file: ${fileMetadata.fileName} (${fileMetadata.fileSize} bytes) from ${message.senderId}")
@@ -67,40 +66,60 @@ fun Application.configureRouting() {
                             // Initialize chunk storage
                             fileChunks[fileKey] = mutableListOf()
                         }
-                                targetUsers . forEach { user ->
-                            users[user]?.send(Frame.Text(Json.encodeToString(message)))
+                        targetUsers.forEach { user ->
+                            activeUsers[user]?.send(Frame.Text(json.encodeToString(message)))
                         }
-
-                        /*val data = json.decodeFromString<WebSocketData>(receivedText)
+/*
+                        val receivedText = frame.readText()
+                        val data = json.decodeFromString<WebSocketData>(receivedText)
                         when (data) {
                             is WebSocketData.JoinRequest -> {
-                                val receiverSession = users[data.receiverUsername]
-                                mutex.withLock { users[username] = this }
-                                send(
-                                    json.encodeToString(
-                                        WebSocketData.JoinResponse(
-                                            true,
-                                            "Welcome, ${data.username}",
-                                            data.userId
+                                val receiverSession = activeUsers[data.receiverUsername]
+                                mutex.withLock { activeUsers[username] = this }
+                                receiverSession?.send(
+                                    Frame.Text(
+                                        json.encodeToString<WebSocketData.JoinRequest>(
+                                            data
                                         )
                                     )
                                 )
-//                                broadcastUserList()
+                            }
+
+                            is WebSocketData.JoinResponse -> {
+                                val receiverSession = activeUsers[data.receiverUsername]
+                                mutex.withLock { activeUsers[username] = this }
+                                receiverSession?.send(
+                                    Frame.Text(
+                                        json.encodeToString<WebSocketData.JoinResponse>(
+                                            data
+                                        )
+                                    )
+                                )
                             }
 
                             is WebSocketData.Message -> {
-                                val receiverSession = users[data.receivers]
-                                receiverSession?.send(json.encodeToString(data))
+                                data.receivers.forEach { user ->
+                                    if (user in activeUsers.map { it.key }) {
+                                        activeUsers[user]?.send(Frame.Text(json.encodeToString(
+                                            data
+                                        )))
+                                    }
+                                }
                             }
 
                             is WebSocketData.GetUsers -> {
                                 val users = activeUsers.keys.toList()
-                                send(json.encodeToString(WebSocketData.UserList(users)))
+                                send(Frame.Text(json.encodeToString(WebSocketData.UserList(users))))
                             }
 
                             is WebSocketData.TypingStatus -> {
-                                val receiverSession = activeUsers[data.receiver]
-                                receiverSession?.send(json.encodeToString(data))
+                                data.receivers.forEach { user ->
+                                    if (user in activeUsers.map { it.key }) {
+                                        activeUsers[user]?.send(Frame.Text(json.encodeToString(
+                                            data
+                                        )))
+                                    }
+                                }
                             }
 
                             is WebSocketData.Acknowledgment -> {
@@ -114,6 +133,7 @@ fun Application.configureRouting() {
                             else -> Unit
                         }*/
                     }
+
                     is Frame.Binary -> {
                         val fileKey = "User1_somefile.jpg" // Get correct fileKey dynamically
                         val chunkList = fileChunks[fileKey]
@@ -131,13 +151,15 @@ fun Application.configureRouting() {
                             }
                         }
                     }
+
                     else -> {
                         send(Frame.Text("using else"))
                     }
                 }
             }
 
-            users.remove(username)
+            activeUsers.remove(username)
+            broadcastUserList()
         }
     }
 }

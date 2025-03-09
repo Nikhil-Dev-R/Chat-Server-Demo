@@ -9,7 +9,7 @@ sealed class WebSocketData {
     data class Message(
         val id: String,
         val sender: String,
-        val receivers: String,
+        val receivers: List<String>,
         val content: String,
         val timestamp: Long,
         val isRead: Boolean = false
@@ -18,15 +18,15 @@ sealed class WebSocketData {
 
     @Serializable
     data class JoinRequest(
-        val senderUsername: String = "",
-        val receiverUsername: String = "",
+        val senderUsername: String,
+        val receiverUsername: String,
         val joinMessage: String = "",
     ): WebSocketData()
 
     @Serializable
     data class JoinResponse(
-        val senderUsername: String = "",
-        val receiverUsername: String = "",
+        val senderUsername: String,
+        val receiverUsername: String,
         val accepted: Boolean = false,
     ) : WebSocketData()
 
@@ -49,7 +49,7 @@ sealed class WebSocketData {
     @Serializable
     data class TypingStatus(
         val sender: String,
-        val receiver: String,
+        val receivers: List<String>,
         val isTyping: Boolean
     ) : WebSocketData()
 
