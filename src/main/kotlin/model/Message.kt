@@ -5,14 +5,14 @@ import java.util.*
 
 @Serializable
 data class Message(
-    val id: String = UUID.randomUUID().toString(),
+    val messageId: String = UUID.randomUUID().toString(),
     val senderId: String,
     val chatId: String = "",
-    val receiversId: String = "", // For Room, store receiversId as a comma-separated string;
-    val content: String? = null, // For text messages
-    val type: MessageType = MessageType.TEXT,  // TEXT, IMAGE, VIDEO, etc.
+    val receiversId: String = "",
     val timestamp: Long = System.currentTimeMillis(),
-    val fileMetadata: String? = null, // For files
+    val type: MessageType = MessageType.TEXT,  // TEXT, IMAGE, VIDEO, etc.
+    val content: String? = null, // For text messages
+    val fileMetadata: String? = null // For files (if any)
 )
 
 @Serializable

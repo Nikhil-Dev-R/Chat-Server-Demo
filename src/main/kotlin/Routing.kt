@@ -39,7 +39,7 @@ fun Application.configureRouting() {
             users[username] = this
 
             val connectedMessage = Message(
-                senderId = "Server: $HOST:8080",
+                senderId = "Server",
                 receiversId = username,
                 content = "Hello $username! You are now connected.",
             )
