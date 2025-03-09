@@ -2,6 +2,7 @@ package com.rudraksha
 
 import com.rudraksha.model.FileMetadata
 import com.rudraksha.model.Message
+import com.rudraksha.model.WebSocketData
 import io.ktor.http.ContentType
 import io.ktor.server.application.*
 import io.ktor.server.response.respond
@@ -13,12 +14,17 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
 const val code = "!@#$%^&*()_+1234567890-=],.'/"
 val fileChunks = mutableMapOf<String, MutableList<ByteArray>>() // Store chunks per file
+
+val json = Json { ignoreUnknownKeys = true }
+val mutex = Mutex()
 
 fun Application.configureRouting() {
     routing {
@@ -49,6 +55,7 @@ fun Application.configureRouting() {
                 when (frame) {
                     is Frame.Text -> {
                         val message = Json.decodeFromString<Message>(frame.readText())
+                        val receivedText = frame.readText()
                         val targetUsers = message.receiversId.split(",")
 
                         message.fileMetadata?.let { fileMeta ->
@@ -60,9 +67,52 @@ fun Application.configureRouting() {
                             // Initialize chunk storage
                             fileChunks[fileKey] = mutableListOf()
                         }
-                        targetUsers.forEach { user ->
+                                targetUsers . forEach { user ->
                             users[user]?.send(Frame.Text(Json.encodeToString(message)))
                         }
+
+                        /*val data = json.decodeFromString<WebSocketData>(receivedText)
+                        when (data) {
+                            is WebSocketData.JoinRequest -> {
+                                val receiverSession = users[data.receiverUsername]
+                                mutex.withLock { users[username] = this }
+                                send(
+                                    json.encodeToString(
+                                        WebSocketData.JoinResponse(
+                                            true,
+                                            "Welcome, ${data.username}",
+                                            data.userId
+                                        )
+                                    )
+                                )
+//                                broadcastUserList()
+                            }
+
+                            is WebSocketData.Message -> {
+                                val receiverSession = users[data.receivers]
+                                receiverSession?.send(json.encodeToString(data))
+                            }
+
+                            is WebSocketData.GetUsers -> {
+                                val users = activeUsers.keys.toList()
+                                send(json.encodeToString(WebSocketData.UserList(users)))
+                            }
+
+                            is WebSocketData.TypingStatus -> {
+                                val receiverSession = activeUsers[data.receiver]
+                                receiverSession?.send(json.encodeToString(data))
+                            }
+
+                            is WebSocketData.Acknowledgment -> {
+                                println("Message ${data.messageId} marked as ${data.status}")
+                            }
+
+                            is WebSocketData.Error -> {
+                                println("Error received: ${data.errorMessage}")
+                            }
+
+                            else -> Unit
+                        }*/
                     }
                     is Frame.Binary -> {
                         val fileKey = "User1_somefile.jpg" // Get correct fileKey dynamically

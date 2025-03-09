@@ -25,8 +25,8 @@ class MessageService {
             .limit(limit)
             .map { row ->
                 Message(
-                    id = row[Messages.id],
-//                    chatId = row[Messages.chatId],
+                    messageId = row[Messages.id],
+                    chatId = row[Messages.chatId],
                     senderId = row[Messages.senderId],
                     content = row[Messages.content],
                     timestamp = row[Messages.timestamp],
