@@ -1,24 +1,25 @@
 # Use the official Gradle image to build the project
 FROM gradle:8.4-jdk17 AS build
 
-# Set the working directory
 WORKDIR /app
 
-# Copy Gradle files first (to optimize caching)
-COPY build.gradle.kts settings.gradle.kts gradle.properties ./
+# Copy Gradle wrapper & config files first (to optimize caching)
+COPY gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
 COPY gradle gradle
-RUN gradle build || true
+RUN chmod +x gradlew
+
+# Download dependencies separately to improve caching
+RUN ./gradlew dependencies --no-daemon
 
 # Copy the entire project
 COPY . .
 
-# Build the application (this generates the JAR)
-RUN gradle build --no-daemon
+# Build the application
+RUN ./gradlew build --no-daemon
 
-# Use a minimal JDK image for running the app
-FROM eclipse-temurin:17-jdk-alpine
+# Use a stable JDK image to run the application
+FROM eclipse-temurin:17-jdk
 
-# Set working directory
 WORKDIR /app
 
 # Copy the built JAR from the build stage
