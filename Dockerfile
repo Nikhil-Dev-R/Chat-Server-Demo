@@ -16,6 +16,9 @@ RUN ./gradlew dependencies --no-daemon
 # Copy the entire project
 COPY . .
 
+# Give execute permissions to the Gradle wrapper
+RUN chmod +x ./gradlew
+
 # Build the application
 RUN ./gradlew build --no-daemon
 
