@@ -69,7 +69,6 @@ fun Application.configureRouting() {
                         targetUsers.forEach { user ->
                             activeUsers[user]?.send(Frame.Text(json.encodeToString(message)))
                         }
-/*
                         val receivedText = frame.readText()
                         val data = json.decodeFromString<WebSocketData>(receivedText)
                         when (data) {
@@ -131,7 +130,7 @@ fun Application.configureRouting() {
                             }
 
                             else -> Unit
-                        }*/
+                        }
                     }
 
                     is Frame.Binary -> {
