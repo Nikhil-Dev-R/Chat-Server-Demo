@@ -22,7 +22,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.UUID
-import kotlin.uuid.Uuid
 
 const val code = "!@#$%^&*()_+1234567890-=],.'/"
 val fileChunks = mutableMapOf<String, MutableList<ByteArray>>() // Store chunks per file
@@ -60,32 +59,12 @@ fun Application.configureRouting() {
                 content = "Hello $username! You are now connected.",
                 timestamp = System.currentTimeMillis(),
             )
-                /*Message(
-                senderId = "Server",
-                receiversId = username,
-                chatId = createChatId(listOf(username)),
-                content = "Hello $username! You are now connected.",
-                )*/
-            send(Frame.Text(json.encodeToString(connectedMessage)))
+            send(Frame.Text(json.encodeToString(WebSocketData.serializer(), connectedMessage)))
             println(connectedMessage)
 
             incoming.consumeEach { frame ->
                 when (frame) {
                     is Frame.Text -> {
-                        /*val message = json.decodeFromString<Message>(frame.readText())
-                        val targetUsers = message.receiversId.split(",")
-
-                        message.fileMetadata?.let { fileMeta ->
-                            val fileMetadata = json.decodeFromString<FileMetadata>(fileMeta)
-                            val fileKey = "${message.senderId}_${fileMetadata.fileName}"
-
-                            println("Receiving file: ${fileMetadata.fileName} (${fileMetadata.fileSize} bytes) from ${message.senderId}")
-                            // Initialize chunk storage
-                            fileChunks[fileKey] = mutableListOf()
-                        }
-                        targetUsers.forEach { user ->
-                            activeUsers[user]?.send(Frame.Text(json.encodeToString(message)))
-                        }*/
                         
                         val receivedText = frame.readText()
                         val data = json.decodeFromString<WebSocketData>(receivedText)
@@ -96,6 +75,7 @@ fun Application.configureRouting() {
                                 receiverSession?.send(
                                     Frame.Text(
                                         json.encodeToString<WebSocketData.JoinRequest>(
+                                            WebSocketData.JoinRequest.serializer(),
                                             data
                                         )
                                     )
@@ -108,6 +88,7 @@ fun Application.configureRouting() {
                                 receiverSession?.send(
                                     Frame.Text(
                                         json.encodeToString<WebSocketData.JoinResponse>(
+                                            WebSocketData.JoinResponse.serializer(),
                                             data
                                         )
                                     )
@@ -118,6 +99,7 @@ fun Application.configureRouting() {
                                 data.receivers.forEach { user ->
                                     if (user in activeUsers.map { it.key }) {
                                         activeUsers[user]?.send(Frame.Text(json.encodeToString(
+                                            WebSocketData.Message.serializer(),
                                             data
                                         )))
                                     }
@@ -126,13 +108,17 @@ fun Application.configureRouting() {
 
                             is WebSocketData.GetUsers -> {
                                 val users = activeUsers.keys.toList()
-                                send(Frame.Text(json.encodeToString(WebSocketData.UserList(users))))
+                                send(Frame.Text(json.encodeToString(
+                                    WebSocketData.UserList.serializer(),
+                                    WebSocketData.UserList(users)
+                                )))
                             }
 
                             is WebSocketData.TypingStatus -> {
                                 data.receivers.forEach { user ->
                                     if (user in activeUsers.map { it.key }) {
                                         activeUsers[user]?.send(Frame.Text(json.encodeToString(
+                                            WebSocketData.TypingStatus.serializer(),
                                             data
                                         )))
                                     }

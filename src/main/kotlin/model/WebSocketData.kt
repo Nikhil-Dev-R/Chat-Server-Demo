@@ -83,16 +83,6 @@ sealed class WebSocketData {
     ) : WebSocketData()
 }
 
-fun Message.toWebSocketMessage(): WebSocketData.Message {
-    return WebSocketData.Message(
-        id = this.messageId,
-        sender = this.senderId,
-        receivers = this.receiversId.split(","),
-        content = this.content ?: "",
-        timestamp = this.timestamp,
-    )
-}
-
 // Create the SerializersModule
 val webSocketDataModule = SerializersModule {
     polymorphic(WebSocketData::class) {
