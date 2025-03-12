@@ -20,6 +20,8 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.util.UUID
+import kotlin.uuid.Uuid
 
 const val code = "!@#$%^&*()_+1234567890-=],.'/"
 val fileChunks = mutableMapOf<String, MutableList<ByteArray>>() // Store chunks per file
@@ -42,19 +44,26 @@ fun Application.configureRouting() {
 
             activeUsers[username] = this
 
-            val connectedMessage = Message(
+            val connectedMessage = WebSocketData.Message(
+                id = UUID.randomUUID().toString(),
+                sender = "Server",
+                receivers = listOf(username),
+                content = "Hello $username! You are now connected.",
+                timestamp = System.currentTimeMillis(),
+            )
+                /*Message(
                 senderId = "Server",
                 receiversId = username,
                 chatId = createChatId(listOf(username)),
                 content = "Hello $username! You are now connected.",
-            )
+                )*/
             send(Frame.Text(json.encodeToString(connectedMessage)))
             println(connectedMessage)
 
             incoming.consumeEach { frame ->
                 when (frame) {
                     is Frame.Text -> {
-                        val message = json.decodeFromString<Message>(frame.readText())
+                        /*val message = json.decodeFromString<Message>(frame.readText())
                         val targetUsers = message.receiversId.split(",")
 
                         message.fileMetadata?.let { fileMeta ->
@@ -62,13 +71,13 @@ fun Application.configureRouting() {
                             val fileKey = "${message.senderId}_${fileMetadata.fileName}"
 
                             println("Receiving file: ${fileMetadata.fileName} (${fileMetadata.fileSize} bytes) from ${message.senderId}")
-
                             // Initialize chunk storage
                             fileChunks[fileKey] = mutableListOf()
                         }
                         targetUsers.forEach { user ->
                             activeUsers[user]?.send(Frame.Text(json.encodeToString(message)))
-                        }
+                        }*/
+                        
                         val receivedText = frame.readText()
                         val data = json.decodeFromString<WebSocketData>(receivedText)
                         when (data) {
