@@ -3,6 +3,7 @@ package com.rudraksha
 import com.rudraksha.model.FileMetadata
 import com.rudraksha.model.Message
 import com.rudraksha.model.WebSocketData
+import com.rudraksha.model.webSocketDataModule
 import com.rudraksha.utils.createChatId
 import io.ktor.http.ContentType
 import io.ktor.server.application.*
@@ -26,7 +27,15 @@ import kotlin.uuid.Uuid
 const val code = "!@#$%^&*()_+1234567890-=],.'/"
 val fileChunks = mutableMapOf<String, MutableList<ByteArray>>() // Store chunks per file
 
-val json = Json { ignoreUnknownKeys = true }
+val json = Json {
+    ignoreUnknownKeys = true
+    isLenient = true
+    prettyPrint = true
+    allowStructuredMapKeys = true
+    encodeDefaults = true
+    classDiscriminator = "type" // Use "type" as the discriminator
+    serializersModule = webSocketDataModule
+}
 val mutex = Mutex()
 
 fun Application.configureRouting() {
