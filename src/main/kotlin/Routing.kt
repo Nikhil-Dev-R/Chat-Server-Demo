@@ -1,13 +1,9 @@
 package com.rudraksha
 
-import com.rudraksha.model.FileMetadata
-import com.rudraksha.model.Message
 import com.rudraksha.model.WebSocketData
 import com.rudraksha.model.webSocketDataModule
-import com.rudraksha.utils.createChatId
 import io.ktor.http.ContentType
 import io.ktor.server.application.*
-import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.webSocket
@@ -18,12 +14,10 @@ import io.ktor.websocket.readText
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.UUID
 
-const val code = "!@#$%^&*()_+1234567890-=],.'/"
 val fileChunks = mutableMapOf<String, MutableList<ByteArray>>() // Store chunks per file
 
 val json = Json {
@@ -55,6 +49,7 @@ fun Application.configureRouting() {
             val connectedMessage = WebSocketData.Message(
                 id = UUID.randomUUID().toString(),
                 sender = "Server",
+                chatId = "",
                 receivers = listOf(username),
                 content = "Hello $username! You are now connected.",
                 timestamp = System.currentTimeMillis(),
@@ -70,7 +65,7 @@ fun Application.configureRouting() {
                         val data = json.decodeFromString<WebSocketData>(receivedText)
                         when (data) {
                             is WebSocketData.JoinRequest -> {
-                                val receiverSession = activeUsers[data.receiverUsername]
+                                val receiverSession = activeUsers[data.receiver]
                                 mutex.withLock { activeUsers[username] = this }
                                 receiverSession?.send(
                                     Frame.Text(

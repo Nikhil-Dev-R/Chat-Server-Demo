@@ -15,6 +15,7 @@ sealed class WebSocketData {
         val id: String,
         val sender: String,
         val receivers: List<String>,
+        val chatId: String,
         val content: String,
         val timestamp: Long,
         val isRead: Boolean = false
@@ -23,8 +24,8 @@ sealed class WebSocketData {
     @Serializable
     @SerialName("JoinRequest")
     data class JoinRequest(
-        val senderUsername: String,
-        val receiverUsername: String,
+        val sender: String,
+        val receiver: String,
         val joinMessage: String = "",
     ): WebSocketData()
 
