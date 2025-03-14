@@ -37,7 +37,7 @@ fun Application.configureRouting() {
             call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
         }
 
-        webSocket("/chat/{username}") {
+        webSocket("/chat/{username}/{password}") {
             val username = call.parameters["username"]
             if (username == null) {
                 close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "No username"))

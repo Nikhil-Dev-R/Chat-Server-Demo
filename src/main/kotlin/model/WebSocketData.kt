@@ -5,6 +5,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import kotlinx.serialization.SerialName
+import java.util.UUID
 
 @Serializable
 sealed class WebSocketData {
@@ -12,21 +13,21 @@ sealed class WebSocketData {
     @Serializable
     @SerialName("Message")
     data class Message(
-        val id: String,
+        val id: String = UUID.randomUUID().toString(),
         val sender: String,
         val receivers: List<String>,
         val chatId: String,
-        val content: String,
-        val timestamp: Long,
+        val content: String? = null,
+        val timestamp: Long = System.currentTimeMillis(),
         val isRead: Boolean = false
-    ) : WebSocketData()
+    ): WebSocketData()
 
     @Serializable
     @SerialName("JoinRequest")
     data class JoinRequest(
         val sender: String,
         val receiver: String,
-        val joinMessage: String = "",
+        val joinMessage: String? = null,
     ): WebSocketData()
 
     @Serializable
@@ -35,7 +36,7 @@ sealed class WebSocketData {
         val senderUsername: String,
         val receiverUsername: String,
         val accepted: Boolean = false,
-    ) : WebSocketData()
+    ): WebSocketData()
 
     @Serializable
     @SerialName("GetUsers")
