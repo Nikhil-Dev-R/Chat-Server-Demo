@@ -1,11 +1,10 @@
 package com.rudraksha.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
-import kotlinx.serialization.SerialName
-import java.util.UUID
+import java.util.*
 
 @Serializable
 sealed class WebSocketData {
@@ -33,8 +32,8 @@ sealed class WebSocketData {
     @Serializable
     @SerialName("JoinResponse")
     data class JoinResponse(
-        val senderUsername: String,
-        val receiverUsername: String,
+        val sender: String,
+        val receiver: String,
         val accepted: Boolean = false,
     ): WebSocketData()
 
@@ -88,14 +87,15 @@ sealed class WebSocketData {
 // Create the SerializersModule
 val webSocketDataModule = SerializersModule {
     polymorphic(WebSocketData::class) {
-        subclass(WebSocketData.Message::class)
-        subclass(WebSocketData.JoinRequest::class)
-        subclass(WebSocketData.JoinResponse::class)
-        subclass(WebSocketData.GetUsers::class)
-        subclass(WebSocketData.UserList::class)
-        subclass(WebSocketData.UserStatus::class)
-        subclass(WebSocketData.TypingStatus::class)
-        subclass(WebSocketData.Acknowledgment::class)
-        subclass(WebSocketData.Error::class)
+        subclass(WebSocketData.Message::class, WebSocketData.Message.serializer())
+        subclass(WebSocketData.JoinRequest::class, WebSocketData.JoinRequest.serializer())
+        subclass(WebSocketData.JoinResponse::class, WebSocketData.JoinResponse.serializer())
+        subclass(WebSocketData.GetUsers::class, WebSocketData.GetUsers.serializer())
+        subclass(WebSocketData.UserList::class, WebSocketData.UserList.serializer())
+        subclass(WebSocketData.UserStatus::class, WebSocketData.UserStatus.serializer())
+        subclass(WebSocketData.TypingStatus::class, WebSocketData.TypingStatus.serializer())
+        subclass(WebSocketData.Acknowledgment::class, WebSocketData.Acknowledgment.serializer())
+        subclass(WebSocketData.Error::class, WebSocketData.Error.serializer())
     }
 }
+
