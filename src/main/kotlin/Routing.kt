@@ -47,10 +47,9 @@ fun Application.configureRouting() {
             activeUsers[username] = this
 
             val connectedMessage = WebSocketData.Message(
-                id = UUID.randomUUID().toString(),
                 sender = "Server",
-                chatId = "",
                 receivers = listOf(username),
+                chatId = "",
                 content = "Hello $username! You are now connected.",
                 timestamp = System.currentTimeMillis(),
             )
