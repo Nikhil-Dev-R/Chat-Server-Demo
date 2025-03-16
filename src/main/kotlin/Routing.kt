@@ -3,17 +3,13 @@ package com.rudraksha
 import com.rudraksha.model.WebSocketData
 import com.rudraksha.model.WebSocketData.*
 import com.rudraksha.model.webSocketDataModule
-import io.ktor.http.ContentType
+import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.response.respondText
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.websocket.DefaultWebSocketServerSession
-import io.ktor.server.websocket.webSocket
-import io.ktor.websocket.CloseReason
-import io.ktor.websocket.Frame
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
 import io.ktor.websocket.Frame.*
-import io.ktor.websocket.close
-import io.ktor.websocket.readText
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -53,20 +49,20 @@ fun Application.configureRouting() {
                 // Add user to active list
                 mutex.withLock { activeUsers[username] = this }
 
-                val connectedMessage = WebSocketData.Message(
+                val connectedMessage = Message(
                     sender = "Server",
                     receivers = listOf(username),
                     chatId = "",
                     content = "Hello $username! You are now connected.",
                     timestamp = System.currentTimeMillis()
                 )
-                send(Frame.Text(json.encodeToString(WebSocketData.serializer(), connectedMessage)))
+                send(Text(json.encodeToString(WebSocketData.serializer(), connectedMessage)))
 
                 println("User Connected: $username")
 
                 incoming.consumeEach { frame ->
                     when (frame) {
-                        is Frame.Text -> {
+                        is Text -> {
                             val receivedText = frame.readText()
                             println("📝 Received raw JSON: $receivedText") // Debugging line
                             try {
@@ -78,12 +74,12 @@ fun Application.configureRouting() {
                             }
                         }
 
-                        is Frame.Binary -> {
+                        is Binary -> {
                             handleBinaryData(frame)
                         }
 
                         else -> {
-                            send(Frame.Text("Unknown message type received"))
+                            send(Text("Unknown message type received"))
                         }
                     }
                 }
@@ -102,18 +98,18 @@ fun Application.configureRouting() {
  */
 suspend fun DefaultWebSocketServerSession.handleWebSocketData(data: WebSocketData, username: String) {
     when (data) {
-        is WebSocketData.JoinRequest -> {
+        is JoinRequest -> {
             val receiverSession = activeUsers[data.receiver]
             mutex.withLock { activeUsers[username] = this }
 
             if (receiverSession != null) {
-                receiverSession.send(Text(json.encodeToString(data)))
+                receiverSession.send(Text(json.encodeToString(WebSocketData.serializer(), data)))
             } else {
                 sendErrorMessage("User ${data.receiver} is not online", 404)
             }
         }
 
-        is WebSocketData.JoinResponse -> {
+        is JoinResponse -> {
             val receiverSession = activeUsers[data.receiver]
             mutex.withLock { activeUsers[username] = this }
 
@@ -121,46 +117,46 @@ suspend fun DefaultWebSocketServerSession.handleWebSocketData(data: WebSocketDat
                 ?: sendErrorMessage("User ${data.receiver} is not online", 404)
         }
 
-        is WebSocketData.Message -> {
+        is Message -> {
             println("📨 Message Received: $data")
 
             data.receivers.forEach { user ->
                 if (activeUsers.containsKey(user)) {
-                    activeUsers[user]?.send(Text(json.encodeToString(data)))
+                    activeUsers[user]?.send(Text(json.encodeToString(WebSocketData.serializer(), data)))
                 } else {
                     println("⚠️ User $user is not online")
                 }
             }
         }
 
-        is WebSocketData.GetUsers -> {
+        is GetUsers -> {
             val users = activeUsers.keys.toList()
             send(Text(json.encodeToString(UserList(users))))
         }
 
-        is WebSocketData.TypingStatus -> {
+        is TypingStatus -> {
             data.receivers.forEach { user ->
                 activeUsers[user]?.send(Text(json.encodeToString(data)))
             }
         }
 
-        is WebSocketData.Acknowledgment -> {
+        is Acknowledgment -> {
             println("📬 Message ${data.messageId} marked as ${data.status}")
         }
 
-        is WebSocketData.Error -> {
+        is Error -> {
             println("❌ Error received: ${data.errorMessage}")
         }
 
-        is WebSocketData.UserList -> TODO()
-        is WebSocketData.UserStatus -> TODO()
+        is UserList -> TODO()
+        is UserStatus -> TODO()
     }
 }
 
 /**
  * Handles file transfer via WebSocket binary frames.
  */
-suspend fun DefaultWebSocketServerSession.handleBinaryData(frame: Frame.Binary) {
+fun DefaultWebSocketServerSession.handleBinaryData(frame: Binary) {
     val fileKey = "User1_somefile.jpg" // Get correct fileKey dynamically
     val chunkList = fileChunks[fileKey]
 
@@ -181,7 +177,7 @@ suspend fun DefaultWebSocketServerSession.handleBinaryData(frame: Frame.Binary) 
  * Sends an error message back to the client.
  */
 suspend fun DefaultWebSocketServerSession.sendErrorMessage(message: String, errorCode: Int) {
-    val errorResponse = WebSocketData.Error(errorCode, message)
-    send(Frame.Text(json.encodeToString(errorResponse)))
+    val errorResponse = Error(errorCode, message)
+    send(Text(json.encodeToString(errorResponse)))
 }
 
