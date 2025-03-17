@@ -44,9 +44,45 @@ sealed class WebSocketData {
     ) : WebSocketData() // Request to fetch all users
 
     @Serializable
+    @SerialName("GetChats")
+    data class GetChats(
+        val user: String
+    ) : WebSocketData() // Request to fetch all chat
+
+    @Serializable
     @SerialName("UserList")
     data class UserList(
         val users: List<String>
+    ) : WebSocketData()
+
+    @Serializable
+    @SerialName("ChatList")
+    data class ChatList(
+        val users: List<String>
+    ) : WebSocketData()
+
+    @Serializable
+    @SerialName("SaveUser")
+    data class SaveUser(
+        val user: String,
+    ): WebSocketData()
+
+    @Serializable
+    @SerialName("DeleteUser")
+    data class DeleteUser(
+        val user: String
+    ) : WebSocketData()
+
+    @Serializable
+    @SerialName("SaveChat")
+    data class SaveChat(
+        val chatId: String,
+    ) : WebSocketData()
+
+    @Serializable
+    @SerialName("DeleteChat")
+    data class DeleteChat(
+        val chatId: String,
     ) : WebSocketData()
 
     @Serializable
@@ -91,11 +127,16 @@ val webSocketDataModule = SerializersModule {
         subclass(WebSocketData.JoinRequest::class, WebSocketData.JoinRequest.serializer())
         subclass(WebSocketData.JoinResponse::class, WebSocketData.JoinResponse.serializer())
         subclass(WebSocketData.GetUsers::class, WebSocketData.GetUsers.serializer())
+        subclass(WebSocketData.GetChats::class, WebSocketData.GetChats.serializer())
         subclass(WebSocketData.UserList::class, WebSocketData.UserList.serializer())
+        subclass(WebSocketData.ChatList::class, WebSocketData.ChatList.serializer())
+        subclass(WebSocketData.SaveUser::class, WebSocketData.SaveUser.serializer())
+        subclass(WebSocketData.SaveChat::class, WebSocketData.SaveChat.serializer())
+        subclass(WebSocketData.DeleteUser::class, WebSocketData.DeleteUser.serializer())
+        subclass(WebSocketData.SaveChat::class, WebSocketData.SaveChat.serializer())
         subclass(WebSocketData.UserStatus::class, WebSocketData.UserStatus.serializer())
         subclass(WebSocketData.TypingStatus::class, WebSocketData.TypingStatus.serializer())
         subclass(WebSocketData.Acknowledgment::class, WebSocketData.Acknowledgment.serializer())
         subclass(WebSocketData.Error::class, WebSocketData.Error.serializer())
     }
 }
-

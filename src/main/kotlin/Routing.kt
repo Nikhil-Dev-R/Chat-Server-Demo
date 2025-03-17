@@ -97,10 +97,10 @@ fun Application.configureRouting() {
  * Handles incoming WebSocket messages.
  */
 suspend fun DefaultWebSocketServerSession.handleWebSocketData(data: WebSocketData, username: String) {
+    mutex.withLock { activeUsers[username] = this }
     when (data) {
         is JoinRequest -> {
             val receiverSession = activeUsers[data.receiver]
-            mutex.withLock { activeUsers[username] = this }
 
             if (receiverSession != null) {
                 receiverSession.send(Text(json.encodeToString(WebSocketData.serializer(), data)))
@@ -111,32 +111,71 @@ suspend fun DefaultWebSocketServerSession.handleWebSocketData(data: WebSocketDat
 
         is JoinResponse -> {
             val receiverSession = activeUsers[data.receiver]
-            mutex.withLock { activeUsers[username] = this }
 
-            receiverSession?.send(Text(json.encodeToString(data)))
+            receiverSession?.send(Text(json.encodeToString(WebSocketData.serializer(), data)))
                 ?: sendErrorMessage("User ${data.receiver} is not online", 404)
         }
 
         is Message -> {
             println("📨 Message Received: $data")
 
-            data.receivers.forEach { user ->
-                if (activeUsers.containsKey(user)) {
-                    activeUsers[user]?.send(Text(json.encodeToString(WebSocketData.serializer(), data)))
+            data.receivers.forEach { receiver ->
+                if (activeUsers.containsKey(receiver)) {
+                    activeUsers[receiver]?.send(Text(json.encodeToString(WebSocketData.serializer(), data)))
                 } else {
-                    println("⚠️ User $user is not online")
+                    println("⚠️ User $receiver is not online")
                 }
             }
         }
 
+        is SaveChat -> {
+            chatIdList.add(data.chatId)
+            send(Text(json.encodeToString(WebSocketData.serializer(),
+                Message(
+                    sender = "Server",
+                    receivers = listOf("activeUsers[this]"),
+                    chatId = "",
+                    content = "Chat saved"
+                )
+            )))
+        }
+
+        is SaveUser -> {
+            userIdList.add(data.user)
+            send(Text(json.encodeToString(WebSocketData.serializer(),
+                Message(
+                    sender = "Server",
+                    receivers = listOf("activeUsers[this]"),
+                    chatId = "",
+                    content = "User saved"
+                )
+            )))
+        }
+
         is GetUsers -> {
-            val users = activeUsers.keys.toList()
-            send(Text(json.encodeToString(UserList(users))))
+            val receiverSession = activeUsers[data.user]
+
+            if (receiverSession != null) {
+                val users = activeUsers.keys.toList()
+                receiverSession.send(Text(json.encodeToString(WebSocketData.serializer(), UserList(users))))
+            } else {
+                sendErrorMessage("User ${data.user} went offline", 404)
+            }
+        }
+
+        is GetChats -> {
+            val receiverSession = activeUsers[data.user]
+
+            if (receiverSession != null) {
+                receiverSession.send(Text(json.encodeToString(WebSocketData.serializer(), ChatList(chatIdList))))
+            } else {
+                sendErrorMessage("User ${data.user} went offline", 404)
+            }
         }
 
         is TypingStatus -> {
             data.receivers.forEach { user ->
-                activeUsers[user]?.send(Text(json.encodeToString(data)))
+                activeUsers[user]?.send(Text(json.encodeToString(WebSocketData.serializer(), data)))
             }
         }
 
@@ -148,8 +187,9 @@ suspend fun DefaultWebSocketServerSession.handleWebSocketData(data: WebSocketDat
             println("❌ Error received: ${data.errorMessage}")
         }
 
-        is UserList -> TODO()
-        is UserStatus -> TODO()
+        else -> {
+
+        }
     }
 }
 

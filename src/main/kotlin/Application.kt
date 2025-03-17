@@ -14,6 +14,9 @@ import kotlinx.serialization.json.Json
 import java.util.concurrent.ConcurrentHashMap
 
 val activeUsers = ConcurrentHashMap<String, DefaultWebSocketSession>()
+val chatIdList: MutableList<String> = mutableListOf()
+val userIdList: MutableList<String> = mutableListOf()
+
 const val HOST = "0.0.0.0"
 //const val HOST = "192.168.15.96"
 //const val HOST = "192.168.43.63"
@@ -52,7 +55,7 @@ suspend fun broadcastUserList() {
 
     // Broadcast updated user list to all active users
     val userKeys = activeUsers.keys.toList()
-    val userListMessage = json.encodeToString(WebSocketData.UserList(userKeys))
+    val userListMessage = json.encodeToString(WebSocketData.serializer(), WebSocketData.UserList(userKeys))
 
     activeSessions.forEach { session ->
         session.send(Frame.Text(userListMessage))
