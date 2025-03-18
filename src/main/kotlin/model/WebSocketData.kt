@@ -124,7 +124,7 @@ sealed class WebSocketData {
     data class Chat(
         val chatId: String, // Chat id
         val name: String, // Chat name
-        val type: ChatType = ChatType.PRIVATE,
+        val chatType: ChatType = ChatType.PRIVATE,
         val participants: String = "",
         val createdBy: String, // Creator username
         val createdAt: Long = System.currentTimeMillis(),
@@ -159,7 +159,6 @@ val webSocketDataModule = SerializersModule {
         subclass(WebSocketData.UserList::class, WebSocketData.UserList.serializer())
         subclass(WebSocketData.ChatList::class, WebSocketData.ChatList.serializer())
         subclass(WebSocketData.SaveUser::class, WebSocketData.SaveUser.serializer())
-        subclass(WebSocketData.SaveChat::class, WebSocketData.SaveChat.serializer())
         subclass(WebSocketData.SaveChat::class, WebSocketData.SaveChat.serializer())
         subclass(WebSocketData.DeleteUser::class, WebSocketData.DeleteUser.serializer())
         subclass(WebSocketData.DeleteChat::class, WebSocketData.DeleteChat.serializer())
