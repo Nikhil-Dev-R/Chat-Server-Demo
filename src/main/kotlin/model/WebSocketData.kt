@@ -11,7 +11,7 @@ sealed class WebSocketData {
     @Serializable
     @SerialName("ConnectionStatus")
     data class ConnectionStatus(
-        val status: String
+        val status: Boolean
     ): WebSocketData()
 
     @Serializable

@@ -50,7 +50,7 @@ fun Application.configureRouting() {
                 mutex.withLock { activeUsers[username] = this }
 
                 val connectionStatus = ConnectionStatus(
-                    status = "connected"
+                    status = true
                 )
                 send(Text(json.encodeToString(WebSocketData.serializer(), connectionStatus)))
 
@@ -84,7 +84,7 @@ fun Application.configureRouting() {
             } finally {
                 activeUsers.remove(username)
 
-                val connectionStatus = ConnectionStatus(status = "disconnected")
+                val connectionStatus = ConnectionStatus(status = false)
                 send(Text(json.encodeToString(WebSocketData.serializer(), connectionStatus)))
                 broadcastUserList()
             }
