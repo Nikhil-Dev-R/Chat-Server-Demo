@@ -49,14 +49,10 @@ fun Application.configureRouting() {
                 // Add user to active list
                 mutex.withLock { activeUsers[username] = this }
 
-                val connectedMessage = Message(
-                    sender = "Server",
-                    receivers = listOf(username),
-                    chatId = "",
-                    content = "Hello $username! You are now connected.",
-                    timestamp = System.currentTimeMillis()
+                val connectionStatus = ConnectionStatus(
+                    status = "connected"
                 )
-                send(Text(json.encodeToString(WebSocketData.serializer(), connectedMessage)))
+                send(Text(json.encodeToString(WebSocketData.serializer(), connectionStatus)))
 
                 println("User Connected: $username")
 
@@ -87,6 +83,9 @@ fun Application.configureRouting() {
                 println("❌ WebSocket connection error for user $username: ${e.localizedMessage}")
             } finally {
                 activeUsers.remove(username)
+
+                val connectionStatus = ConnectionStatus(status = "disconnected")
+                send(Text(json.encodeToString(WebSocketData.serializer(), connectionStatus)))
                 broadcastUserList()
             }
         }

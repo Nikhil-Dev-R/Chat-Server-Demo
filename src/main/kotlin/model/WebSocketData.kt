@@ -8,6 +8,11 @@ import java.util.*
 
 @Serializable
 sealed class WebSocketData {
+    @Serializable
+    @SerialName("ConnectionStatus")
+    data class ConnectionStatus(
+        val status: String
+    ): WebSocketData()
 
     @Serializable
     @SerialName("Message")
@@ -151,6 +156,7 @@ sealed class WebSocketData {
 // Create the SerializersModule
 val webSocketDataModule = SerializersModule {
     polymorphic(WebSocketData::class) {
+        subclass(WebSocketData.ConnectionStatus::class, WebSocketData.ConnectionStatus.serializer())
         subclass(WebSocketData.Message::class, WebSocketData.Message.serializer())
         subclass(WebSocketData.Chat::class, WebSocketData.Chat.serializer())
         subclass(WebSocketData.User::class, WebSocketData.User.serializer())
